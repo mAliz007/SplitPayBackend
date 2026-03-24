@@ -1,29 +1,32 @@
 package com.SplitPay.model;
 
+import lombok.Getter;
+import lombok.Setter;
 import org.springframework.data.annotation.Id;
 import org.springframework.data.mongodb.core.mapping.Document;
 
+@Setter
+@Getter
 @Document(collection = "users")
 public class User {
+    // Getters and Setters
     @Id
     private String id;
     private String email;
-    private String password; // Hashed version
+    private String password; // Will be null for pure Google users
     private boolean isVerified = false;
+
+    // --- OAuth2 Fields ---
+    private String googleId;    // The unique 'sub' ID from Google
+    private String name;        // User's full name from Google
+    private String picture;     // Profile picture URL
+    private AuthProvider provider = AuthProvider.LOCAL; // Default to local
+
+    public enum AuthProvider {
+        LOCAL, GOOGLE
+    }
 
     // Default Constructor
     public User() {}
 
-    // Getters and Setters
-    public String getId() { return id; }
-    public void setId(String id) { this.id = id; }
-
-    public String getEmail() { return email; }
-    public void setEmail(String email) { this.email = email; }
-
-    public String getPassword() { return password; }
-    public void setPassword(String password) { this.password = password; }
-
-    public boolean isVerified() { return isVerified; }
-    public void setVerified(boolean verified) { isVerified = verified; }
 }
