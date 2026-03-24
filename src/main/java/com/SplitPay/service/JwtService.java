@@ -1,8 +1,6 @@
 package com.SplitPay.service;
 
-import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jwts;
-import io.jsonwebtoken.SignatureAlgorithm;
 import io.jsonwebtoken.security.Keys;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
@@ -25,30 +23,55 @@ public class JwtService {
         return Keys.hmacShaKeyFor(keyBytes);
     }
 
+    // --- 1. VERIFICATION TOKEN (For Signup Email) ---
     public String generateVerificationToken(String email) {
         return Jwts.builder()
-                .setSubject(email)
-                .setIssuedAt(new Date())
-                .setExpiration(new Date((new Date()).getTime() + jwtExpirationMs))
-                .signWith(getSigningKey(), SignatureAlgorithm.HS256)
+                .subject(email)
+                .issuedAt(new Date())
+                .expiration(new Date(System.currentTimeMillis() + jwtExpirationMs))
+                .signWith(getSigningKey()) // Algorithm HS256 is auto-detected from key size
                 .compact();
     }
 
+    // --- 2. ACCESS TOKEN (Short lived: 15 mins) ---
+    public String generateAccessToken(String email) {
+        return Jwts.builder()
+                .subject(email)
+                .issuedAt(new Date())
+                .expiration(new Date(System.currentTimeMillis() + 1000 * 60 * 15))
+                .signWith(getSigningKey())
+                .compact();
+    }
+
+    // --- 3. REFRESH TOKEN (Long lived: 7 days) ---
+    public String generateRefreshToken(String email) {
+        return Jwts.builder()
+                .subject(email)
+                .issuedAt(new Date())
+                .expiration(new Date(System.currentTimeMillis() + 1000L * 60 * 60 * 24 * 7))
+                .signWith(getSigningKey())
+                .compact();
+    }
+
+    // --- 4. PARSING & VALIDATION (Modern 0.12.x syntax) ---
     public String getEmailFromToken(String token) {
-        return Jwts.parserBuilder()
-                .setSigningKey(getSigningKey())
+        return Jwts.parser()
+                .verifyWith(getSigningKey()) // verifyWith replaces setSigningKey
                 .build()
-                .parseClaimsJws(token)
-                .getBody()
+                .parseSignedClaims(token)    // parseSignedClaims replaces parseClaimsJws
+                .getPayload()                // getPayload replaces getBody
                 .getSubject();
     }
 
     public boolean validateToken(String token) {
         try {
-            Jwts.parserBuilder().setSigningKey(getSigningKey()).build().parseClaimsJws(token);
+            Jwts.parser()
+                    .verifyWith(getSigningKey())
+                    .build()
+                    .parseSignedClaims(token);
             return true;
         } catch (Exception e) {
-            // This catches ExpiredJwtException, MalformedJwtException, etc.
+            // Catches ExpiredJwtException, MalformedJwtException, etc.
             return false;
         }
     }
