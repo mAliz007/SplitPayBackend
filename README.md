@@ -1,0 +1,3 @@
+The SplitPay Backend is a robust, scalable RESTful service built with Spring Boot and MongoDB, designed to simplify shared expense tracking and bill-splitting among users. It delivers secure authentication and authorization utilizing JWT and Google OAuth2, alongside an automated email notification system via JavaMail.
+
+Engineered with a clean, modular architecture, it supports core operations such as dynamic expense calculations, group balance settlements, and secure user profile management. Configured for effortless deployment and local testing through environment-driven properties, the backend guarantees high performance, data consistency, and reliable integration with modern frontend applications.
